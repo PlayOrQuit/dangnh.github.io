@@ -1,246 +1,276 @@
 <html>
 	<head>
-		<title>Chúc mừng giáng sinh!!!</title>
-		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+		<title>Happy New Year</title>
+
 		<style>
 		html,
 		body {
-			margin: 0;
-			padding: 0;
-		}
-		a {
-			line-height: normal;
-			font-family: 'Varela Round', sans-serif;
-			font-weight: 600;
-			text-decoration: none;
-			font-size: 13px;
-			color: #A7AAAE;
-			position: absolute;
-			left: 20px;
-			bottom: 20px;
-			border: 1px solid #A7AAAE;
-			padding: 12px 20px 10px 20px;
-			border-radius: 50px;
-			transition: all .1s ease-in-out;
-			text-transform: uppercase;
-			z-index: 5;
-		}
-			a:hover {
-			background: #A7AAAE;
-			color: #fff;
-		}
-		.demos {
-			position: absolute;
-			height: 37px;
-			left: 50%;
-			bottom: 20px;
-			z-index: 5;
-			white-space: nowrap;
-			-webkit-transform: translateX(-50%);
-			transform: translateX(-50%);
-		}
-		.demos a {
-			display: inline-block;
-			position: static;
-			left: auto;
-			bottom: auto;
-			border-radius: 0;
-			margin-left: -1px;
-		}
-		.demos a:first-of-type {
-			border-top-left-radius: 4px;
-			border-bottom-left-radius: 4px;
-			margin-left: 0;
-		}
-		.demos a:last-of-type {
-			border-top-right-radius: 4px;
-			border-bottom-right-radius: 4px;
-		}
-
-		/* Christmas */
-		.xmas {
-			width: 100%;
-			height: 100%;
-			position: relative;
-			background: url("ZLSw0SXxThSrkXRIiCdT_DSC_0345.jpg") no-repeat 0 0/cover;
-		}
-		.xmas:before {
-			content: '';
-			width: 100%;
-			height: 100%;
-			position: absolute;
-			background: rgba(21,8,43,0.2);
-		}
-		.xmas .xmas-message {
-			position: absolute;
-			left: 50%;
-			top: 50%;
-			z-index: 3;
-			-ms-transform: translate(-50%, -50%);
-			-webkit-transform: translate(-50%, -50%);
-			transform: translate(-50%, -50%);
-			width: calc(90% - 6rem);
-			height: calc(100% - 12rem);
-			margin: 0 auto;
-			background: url("merryxmas.png") no-repeat 50% 50%/contain;
-		}
-		.xmas #xmas {
-			width: 100%;
-			height: 100%;
-			position: relative;
-			z-index: 4;
+			background-color: #000000;
+			margin: 0px;
+			overflow: hidden;
 		}
 		</style>
 	</head>
 	<body>
-		<section class="xmas">
-			<div class="xmas-message"></div>
-			
-			<!-- Let it snow! -->
-			<canvas id="xmas"></canvas>
-		</section>
-
-		<!-- <div class="demos"><a href="index.html">Default</a><a href="mousemove.html">Mouse move effect</a></div> -->
-
-		<a href="http://facebook.com/nhd4ng" target="_blank">My HomePage</a>
-
+		<script
+  src="https://code.jquery.com/jquery-3.4.1.js"
+  integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+  crossorigin="anonymous"></script>
 		<script>
-		document.addEventListener("DOMContentLoaded", function(event) {
-		  iProDevSnow();
-		});
+		var SCREEN_WIDTH = window.innerWidth,
+    SCREEN_HEIGHT = window.innerHeight,
+    mousePos = {
+        x: 400,
+        y: 300
+    },
 
-		// iProDevSnow Christmas! \o/
-		var iProDevSnow = function(){
+    // create canvas
+    canvas = document.createElement('canvas'),
+    context = canvas.getContext('2d'),
+    particles = [],
+    rockets = [],
+    MAX_PARTICLES = 400,
+    colorCode = 0;
 
-			(function() {
-			    var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame ||
-			    function(callback) {
-			        window.setTimeout(callback, 1000 / 60);
-			    };
-			    window.requestAnimationFrame = requestAnimationFrame;
-			})();
+// init
+$(document).ready(function() {
+    document.body.appendChild(canvas);
+    canvas.width = SCREEN_WIDTH;
+    canvas.height = SCREEN_HEIGHT;
+    setInterval(launch, 800);
+    setInterval(loop, 1000 / 50);
+});
 
-			var flakes = [],
-			    canvas = document.getElementById("xmas"),
-			    ctx = canvas.getContext("2d"),
-			    parent = canvas.parentNode,
-			    retina = window.devicePixelRatio,
-			    flakeCount = parent.offsetWidth < 767 ? 40 : 150,
-			    mX = -200,
-			    mY = -200;
+// update mouse position
+$(document).mousemove(function(e) {
+    e.preventDefault();
+    mousePos = {
+        x: e.clientX,
+        y: e.clientY
+    };
+});
 
-		    canvas.width = parent.offsetWidth * retina;
-		    canvas.height = parent.offsetHeight * retina;
+// launch more rockets!!!
+$(document).mousedown(function(e) {
+    for (var i = 0; i < 5; i++) {
+        launchFrom(Math.random() * SCREEN_WIDTH * 2 / 3 + SCREEN_WIDTH / 6);
+    }
+});
 
-			function snowFrame() {
-			    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function launch() {
+    launchFrom(mousePos.x);
+}
 
-			    for (var i = 0; i < flakeCount; i++) {
-					var flake = flakes[i],
-						x = mX,
-						y = mY,
-						minDist = 200 * retina,
-						x2 = flake.x,
-						y2 = flake.y;
+function launchFrom(x) {
+    if (rockets.length < 10) {
+        var rocket = new Rocket(x);
+        rocket.explosionColor = Math.floor(Math.random() * 360 / 10) * 10;
+        rocket.vel.y = Math.random() * -3 - 4;
+        rocket.vel.x = Math.random() * 6 - 3;
+        rocket.size = 8;
+        rocket.shrink = 0.999;
+        rocket.gravity = 0.01;
+        rockets.push(rocket);
+    }
+}
 
-					var dist = Math.sqrt((x2 - x) * (x2 - x) + (y2 - y) * (y2 - y)),
-						dx = x2 - x,
-						dy = y2 - y;
+function loop() {
+    // update screen size
+    if (SCREEN_WIDTH != window.innerWidth) {
+        canvas.width = SCREEN_WIDTH = window.innerWidth;
+    }
+    if (SCREEN_HEIGHT != window.innerHeight) {
+        canvas.height = SCREEN_HEIGHT = window.innerHeight;
+    }
 
-					if (dist < minDist) {
-						var force = minDist / (dist * dist),
-						xcomp = (x - x2) / dist * retina,
-						ycomp = (y - y2) / dist * retina,
-						deltaV = force / 2 * retina;
+    // clear canvas
+    context.fillStyle = "rgba(0, 0, 0, 0.05)";
+    context.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-						flake.velX -= deltaV * xcomp;
-						flake.velY -= deltaV * ycomp;
-					} else {
-						flake.velX *= .98;
-						if (flake.velY <= flake.speed) {
-							flake.velY = flake.speed
-						}
-						flake.velX += Math.cos(flake.step += .05) * flake.stepSize;
-					}
+    var existingRockets = [];
 
-			        ctx.fillStyle = "rgba(255,255,255," + flake.opacity + ")";
-			        flake.y += flake.velY;
-			        flake.x += flake.velX;
-			            
-			        if (flake.y >= canvas.height || flake.y <= 0) {
-			            reset(flake);
-			        }
+    for (var i = 0; i < rockets.length; i++) {
+        // update and render
+        rockets[i].update();
+        rockets[i].render(context);
 
-			        if (flake.x >= canvas.width || flake.x <= 0) {
-			            reset(flake);
-			        }
+        // calculate distance with Pythagoras
+        var distance = Math.sqrt(Math.pow(mousePos.x - rockets[i].pos.x, 2) + Math.pow(mousePos.y - rockets[i].pos.y, 2));
 
-			        ctx.beginPath();
-			        ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
-			        ctx.fill();
-			    }
-			    requestAnimationFrame(snowFrame);
-			};
+        // random chance of 1% if rockets is above the middle
+        var randomChance = rockets[i].pos.y < (SCREEN_HEIGHT * 2 / 3) ? (Math.random() * 100 <= 1) : false;
 
-			function reset(flake) {
-			    flake.x = Math.floor(Math.random() * canvas.width);
-			    flake.y = 0;
-			    flake.size = ((Math.random() * 3) + getRandomInt(2, 4)) * retina;
-			    flake.speed = ((Math.random() * 1) + 0.2) * retina;
-			    flake.velY = flake.speed;
-			    flake.velX = 0;
-			    flake.opacity = (Math.random() * 0.5) + 0.4;
-			}
+/* Explosion rules
+             - 80% of screen
+            - going down
+            - close to the mouse
+            - 1% chance of random explosion
+        */
+        if (rockets[i].pos.y < SCREEN_HEIGHT / 5 || rockets[i].vel.y >= 0 || distance < 50 || randomChance) {
+            rockets[i].explode();
+        } else {
+            existingRockets.push(rockets[i]);
+        }
+    }
 
-			function init() {
-			    for (var i = 0; i < flakeCount; i++) {
-			        var x = Math.floor(Math.random() * canvas.width),
-			            y = Math.floor(Math.random() * canvas.height),
-			            size = ((Math.random() * 3) + getRandomInt(2, 4)) * retina,
-			            speed = ((Math.random() * 1) + 0.2) * retina,
-			            opacity = (Math.random() * 0.5) + 0.4;
+    rockets = existingRockets;
 
-			        flakes.push({
-			            speed: speed,
-			            velY: speed,
-			            velX: 0,
-			            x: x,
-			            y: y,
-			            size: size,
-			            stepSize: (Math.random()) / 30,
-			            step: 0,
-			            opacity: opacity
-			        });
-			    }
+    var existingParticles = [];
 
-			    snowFrame();
-			};
+    for (var i = 0; i < particles.length; i++) {
+        particles[i].update();
 
-			canvas.addEventListener("mouseenter", function() {
-				canvas.addEventListener("mousemove", function(e) {
-					mX = (e.pageX - canvas.offsetLeft) * retina,
-					mY = (e.pageY - canvas.offsetTop) * retina;
-				});
-			});
+        // render and save particles that can be rendered
+        if (particles[i].exists()) {
+            particles[i].render(context);
+            existingParticles.push(particles[i]);
+        }
+    }
 
-			canvas.addEventListener("mouseleave", function() {
-				canvas.removeEventListener("mousemove");
-				mX = -300,
-				mY = -300;
-			});
+    // update array with existing particles - old particles should be garbage collected
+    particles = existingParticles;
 
-			window.addEventListener("resize",function(){
-			    canvas.width = parent.offsetWidth * retina;
-			    canvas.height = parent.offsetHeight * retina;
-			});
+    while (particles.length > MAX_PARTICLES) {
+        particles.shift();
+    }
+}
 
-			init();
-		};
-		// Returns a random integer between min (included) and max (excluded)
-		// Using Math.round() will give you a non-uniform distribution!
-		function getRandomInt(min, max) {
-		  return Math.floor(Math.random() * (max - min)) + min;
-		}
+function Particle(pos) {
+    this.pos = {
+        x: pos ? pos.x : 0,
+        y: pos ? pos.y : 0
+    };
+    this.vel = {
+        x: 0,
+        y: 0
+    };
+    this.shrink = .97;
+    this.size = 2;
+
+    this.resistance = 1;
+    this.gravity = 0;
+
+    this.flick = false;
+
+    this.alpha = 1;
+    this.fade = 0;
+    this.color = 0;
+}
+
+Particle.prototype.update = function() {
+    // apply resistance
+    this.vel.x *= this.resistance;
+    this.vel.y *= this.resistance;
+
+    // gravity down
+    this.vel.y += this.gravity;
+
+    // update position based on speed
+    this.pos.x += this.vel.x;
+    this.pos.y += this.vel.y;
+
+    // shrink
+    this.size *= this.shrink;
+
+    // fade out
+    this.alpha -= this.fade;
+};
+
+Particle.prototype.render = function(c) {
+    if (!this.exists()) {
+        return;
+    }
+
+    c.save();
+
+    c.globalCompositeOperation = 'lighter';
+
+    var x = this.pos.x,
+        y = this.pos.y,
+        r = this.size / 2;
+
+    var gradient = c.createRadialGradient(x, y, 0.1, x, y, r);
+    gradient.addColorStop(0.1, "rgba(255,255,255," + this.alpha + ")");
+    gradient.addColorStop(0.8, "hsla(" + this.color + ", 100%, 50%, " + this.alpha + ")");
+    gradient.addColorStop(1, "hsla(" + this.color + ", 100%, 50%, 0.1)");
+
+    c.fillStyle = gradient;
+
+    c.beginPath();
+    c.arc(this.pos.x, this.pos.y, this.flick ? Math.random() * this.size : this.size, 0, Math.PI * 2, true);
+    c.closePath();
+    c.fill();
+
+    c.restore();
+};
+
+Particle.prototype.exists = function() {
+    return this.alpha >= 0.1 && this.size >= 1;
+};
+
+function Rocket(x) {
+    Particle.apply(this, [{
+        x: x,
+        y: SCREEN_HEIGHT}]);
+
+    this.explosionColor = 0;
+}
+
+Rocket.prototype = new Particle();
+Rocket.prototype.constructor = Rocket;
+
+Rocket.prototype.explode = function() {
+    var count = Math.random() * 10 + 80;
+
+    for (var i = 0; i < count; i++) {
+        var particle = new Particle(this.pos);
+        var angle = Math.random() * Math.PI * 2;
+
+        // emulate 3D effect by using cosine and put more particles in the middle
+        var speed = Math.cos(Math.random() * Math.PI / 2) * 15;
+
+        particle.vel.x = Math.cos(angle) * speed;
+        particle.vel.y = Math.sin(angle) * speed;
+
+        particle.size = 10;
+
+        particle.gravity = 0.2;
+        particle.resistance = 0.92;
+        particle.shrink = Math.random() * 0.05 + 0.93;
+
+        particle.flick = true;
+        particle.color = this.explosionColor;
+
+        particles.push(particle);
+    }
+};
+
+Rocket.prototype.render = function(c) {
+    if (!this.exists()) {
+        return;
+    }
+
+    c.save();
+
+    c.globalCompositeOperation = 'lighter';
+
+    var x = this.pos.x,
+        y = this.pos.y,
+        r = this.size / 2;
+
+    var gradient = c.createRadialGradient(x, y, 0.1, x, y, r);
+    gradient.addColorStop(0.1, "rgba(255, 255, 255 ," + this.alpha + ")");
+    gradient.addColorStop(1, "rgba(0, 0, 0, " + this.alpha + ")");
+
+    c.fillStyle = gradient;
+
+    c.beginPath();
+    c.arc(this.pos.x, this.pos.y, this.flick ? Math.random() * this.size / 2 + this.size / 2 : this.size, 0, Math.PI * 2, true);
+    c.closePath();
+    c.fill();
+
+    c.restore();
+};
 		</script>
 	</body>
 </html>
